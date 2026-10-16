@@ -320,7 +320,10 @@ function renderText(n, w, h) {
   for (const o of td.styleOverrideTable || []) table[o.styleID] = o;
   const align = { LEFT: 'left', CENTER: 'center', RIGHT: 'right', JUSTIFIED: 'justify' }[n.textAlignHorizontal || 'LEFT'];
   const fsz = n.fontSize;
-  let base = fontCss(n.fontName) + `font-size:${px(fsz)};` + textFillCss(n.fillPaints, w, h) + lsCss(n.letterSpacing, fsz);
+  const fillCss = textFillCss(n.fillPaints, w, h);
+  // A gradient text fill must sit on each line box: background-clip:text does not reach positioned children.
+  const gradFill = fillCss.includes('background-image') ? fillCss.replace('color:transparent;', '') : '';
+  let base = fontCss(n.fontName) + `font-size:${px(fsz)};` + (gradFill ? 'color:transparent;' : fillCss) + lsCss(n.letterSpacing, fsz);
   if (n.textDecoration === 'UNDERLINE') base += 'text-decoration:underline;';
   if (n.textDecoration === 'STRIKETHROUGH') base += 'text-decoration:line-through;';
   if (n.textCase) base += textCaseCss(n.textCase);
@@ -351,7 +354,7 @@ function renderText(n, w, h) {
   const lhRule = n.lineHeight || { value: 100, units: 'PERCENT' };
   if (!bl || !bl.length) {
     const lh = lhRule.units === 'PIXELS' ? px(lhRule.value) : lhRule.units === 'RAW' ? r2(lhRule.value) : 'normal';
-    return `<div style="position:absolute;inset:0;white-space:pre-wrap;line-height:${lh};${base}">${runsFor(0, units.length)}</div>`;
+    return `<div style="position:absolute;inset:0;white-space:pre-wrap;line-height:${lh};${base}${gradFill}">${runsFor(0, units.length)}</div>`;
   }
   // list support: figure bullets per paragraph
   const paraLines = td.lines || [];
@@ -382,7 +385,11 @@ function renderText(n, w, h) {
       }
     }
     const top = b.lineY;
-    html += `<div style="position:absolute;left:0;top:${px(top)};width:100%;height:${px(L)};line-height:${px(L)};white-space:pre;${pad}">${pre}${runsFor(b.firstCharacter, b.endCharacter)}</div>`;
+    // Gradient lines span the whole text box so tall glyphs are never clipped by the painted background.
+    const box = gradFill
+      ? `top:0;padding-top:${px(top)};height:${px(Math.max(h, top + L))};${gradFill}background-size:${px(w)} ${px(h)};background-repeat:no-repeat;`
+      : `top:${px(top)};height:${px(L)};`;
+    html += `<div style="position:absolute;left:0;${box}width:100%;line-height:${px(L)};white-space:pre;${pad}">${pre}${runsFor(b.firstCharacter, b.endCharacter)}</div>`;
   });
   void chars;
   return `<div style="position:absolute;inset:0;${base}">${html}</div>`;
@@ -455,7 +462,7 @@ function renderStrokeSvg(n, w, h) {
     for (const g of sg) body += `<path d="${pathD(g.commandsBlob)}" fill="${sv.fill}"${sv.op < 1 ? ` fill-opacity="${r2(sv.op)}"` : ''}${g.windingRule === 'ODD' ? ' fill-rule="evenodd"' : ''}/>`;
   }
   if (!body) return '';
-  return `<svg style="position:absolute;left:0;top:0;overflow:visible" width="${r2(w)}" height="${r2(h)}" viewBox="0 0 ${r2(Math.max(w, 0.01))} ${r2(Math.max(h, 0.01))}">${defs.length ? '<defs>' + defs.join('') + '</defs>' : ''}${body}</svg>`;
+  return `<svg style="position:absolute;left:0;top:0;overflow:visible" width="${r2(Math.max(w, 1))}" height="${r2(Math.max(h, 1))}">${defs.length ? '<defs>' + defs.join('') + '</defs>' : ''}${body}</svg>`;
 }
 
 function renderNode(n, depth) {
@@ -497,7 +504,8 @@ function renderNode(n, depth) {
     const filt = svgFilter(n.effects, defs);
     let s = style;
     if (eff.back.length && fg.length) s += `backdrop-filter:${eff.back.join(' ')};-webkit-backdrop-filter:${eff.back.join(' ')};clip-path:path('${fg.map(g => pathD(g.commandsBlob)).join('')}');`;
-    return `<svg${name} style="${s}overflow:visible" width="${r2(w)}" height="${r2(h)}" viewBox="0 0 ${r2(Math.max(w, 0.01))} ${r2(Math.max(h, 0.01))}">${defs.length ? '<defs>' + defs.join('') + '</defs>' : ''}${filt ? `<g filter="${filt}">${body}</g>` : body}</svg>`;
+    s = s.replace(`width:${px(w)};height:${px(h)};`, `width:${px(Math.max(w, 1))};height:${px(Math.max(h, 1))};`);
+    return `<svg${name} style="${s}overflow:visible" width="${r2(Math.max(w, 1))}" height="${r2(Math.max(h, 1))}">${defs.length ? '<defs>' + defs.join('') + '</defs>' : ''}${filt ? `<g filter="${filt}">${body}</g>` : body}</svg>`;
   }
 
   // FRAME / ROUNDED_RECTANGLE / GROUP
