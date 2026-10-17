@@ -1,0 +1,32 @@
+// Report values. Edit a number here and the matching chart, bar, gauge and label redraw to match.
+// Percentages are 0-100 (sentiment is -100 to 100). Use null for "N/A" bars.
+window.REPORT_DATA = {
+  "Page 5 · 11 July 2026 · Sentiment": 50,
+  "Page 5 · 10 July 2026 · Sentiment": 98,
+  "Page 5 · 9 July 2026 · Sentiment": -20,
+  "Page 5 · 8 July 2026 · Sentiment": 50,
+  "Page 5 · 7 July 2026 · Sentiment": 40,
+  "Page 5 · 6 July 2026 · Sentiment": 21,
+  "Page 5 · 5 July 2026 · Sentiment": 8,
+  "Page 5 · 5 July 2026 · Situation": 97,
+  "Page 5 · 6 July 2026 · Situation": 70,
+  "Page 5 · 7 July 2026 · Situation": 65,
+  "Page 5 · 8 July 2026 · Situation": 50,
+  "Page 5 · 9 July 2026 · Situation": 40,
+  "Page 5 · 10 July 2026 · Situation": 25,
+  "Page 5 · 11 July 2026 · Situation": 9,
+  "Page 6 · 11 July 2026 · Sentiment": 50,
+  "Page 6 · 10 July 2026 · Sentiment": 98,
+  "Page 6 · 9 July 2026 · Sentiment": -20,
+  "Page 6 · 8 July 2026 · Sentiment": 50,
+  "Page 6 · 7 July 2026 · Sentiment": 40,
+  "Page 6 · 6 July 2026 · Sentiment": 21,
+  "Page 6 · 5 July 2026 · Sentiment": 8,
+  "Page 6 · 5 July 2026 · Situation": 97,
+  "Page 6 · 6 July 2026 · Situation": 70,
+  "Page 6 · 7 July 2026 · Situation": 65,
+  "Page 6 · 8 July 2026 · Situation": 50,
+  "Page 6 · 9 July 2026 · Situation": 40,
+  "Page 6 · 10 July 2026 · Situation": 25,
+  "Page 6 · 11 July 2026 · Situation": 9
+};
